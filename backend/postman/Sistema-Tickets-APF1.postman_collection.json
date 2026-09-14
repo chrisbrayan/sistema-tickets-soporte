@@ -1,0 +1,228 @@
+{
+  "info": {
+    "_postman_id": "f7e8bb1e-8d2d-4e25-9f4b-3a1d5bb1d001",
+    "name": "Sistema Tickets - APF1",
+    "description": "Flujo principal y casos de error de la API REST de tickets de soporte técnico.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "ticketId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "Crear ticket",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"No puedo acceder al correo\",\n  \"descripcion\": \"El sistema rechaza mis credenciales desde esta mañana.\",\n  \"prioridad\": \"MEDIA\",\n  \"usuarioId\": 1,\n  \"categoriaId\": 1\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets"]
+        },
+        "description": "Crea un ticket con un usuario y una categoría existentes."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('El ticket se crea con HTTP 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set('ticketId', body.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Listar tickets",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets"]
+        },
+        "description": "Devuelve todos los tickets almacenados en memoria."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('La lista responde con HTTP 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Obtener ticket",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets/{{ticketId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets", "{{ticketId}}"]
+        },
+        "description": "Obtiene el ticket creado por la petición anterior."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('El ticket responde con HTTP 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Modificar ticket",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Acceso al correo en revisión\",\n  \"descripcion\": \"El técnico está revisando las credenciales y la configuración.\",\n  \"prioridad\": \"ALTA\",\n  \"estado\": \"EN_PROGRESO\",\n  \"usuarioId\": 1,\n  \"categoriaId\": 1,\n  \"tecnicoId\": 2\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets/{{ticketId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets", "{{ticketId}}"]
+        },
+        "description": "Actualiza los datos y asigna el técnico del catálogo con ID 2."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('El ticket se modifica con HTTP 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Eliminar ticket",
+      "request": {
+        "method": "DELETE",
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets/{{ticketId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets", "{{ticketId}}"]
+        },
+        "description": "Elimina el ticket creado durante el flujo."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('El ticket se elimina con HTTP 204', function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error - validación 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"\",\n  \"descripcion\": \"Descripción sin título válido\",\n  \"prioridad\": \"MEDIA\",\n  \"usuarioId\": 1,\n  \"categoriaId\": 1\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets"]
+        },
+        "description": "Debe responder 400 porque el título está vacío."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('La validación responde con HTTP 400', function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error - ticket inexistente 404",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets/999999",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets", "999999"]
+        },
+        "description": "Debe responder 404 porque el ticket no existe."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('El recurso inexistente responde con HTTP 404', function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
