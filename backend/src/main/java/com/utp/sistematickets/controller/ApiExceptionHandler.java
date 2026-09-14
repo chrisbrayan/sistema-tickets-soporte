@@ -1,8 +1,8 @@
-package com.utp.sistema_tickets.controller;
+package com.utp.sistematickets.controller;
 
-import com.utp.sistema_tickets.dto.ApiError;
-import com.utp.sistema_tickets.exception.TicketNotFoundException;
-import com.utp.sistema_tickets.exception.TicketValidationException;
+import com.utp.sistematickets.dto.ApiError;
+import com.utp.sistematickets.exception.TicketNotFoundException;
+import com.utp.sistematickets.exception.TicketValidationException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;

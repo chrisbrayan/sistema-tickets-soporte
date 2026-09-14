@@ -1,20 +1,24 @@
 package com.utp.sistematickets.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.utp.sistema_tickets.exception.TicketNotFoundException;
-import com.utp.sistema_tickets.model.Categoria;
-import com.utp.sistema_tickets.model.PrioridadTicket;
-import com.utp.sistema_tickets.model.Ticket;
-import com.utp.sistema_tickets.model.Usuario;
-import com.utp.sistema_tickets.service.TicketService;
+import com.utp.sistematickets.exception.TicketNotFoundException;
+import com.utp.sistematickets.model.Categoria;
+import com.utp.sistematickets.model.PrioridadTicket;
+import com.utp.sistematickets.model.Ticket;
+import com.utp.sistematickets.model.Usuario;
+import com.utp.sistematickets.service.TicketService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,7 +79,7 @@ class TicketControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.error").value("Not Found"))
-                .andExpect(jsonPath("$.message").value("ticket no encontrado: 99"))
+                .andExpect(jsonPath("$.message").value("Ticket no encontrado: 99"))
                 .andExpect(jsonPath("$.path").value("/api/tickets/99"));
     }
 
@@ -107,6 +111,29 @@ class TicketControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(10))
                 .andExpect(jsonPath("$[0].titulo").value("Primer ticket"));
+    }
+
+    @Test
+    void putActualizaTicketYResponde200() throws Exception {
+        Ticket actualizado = ticket(10L, "Ticket actualizado");
+        when(ticketService.actualizar(eq(10L), any(Ticket.class))).thenReturn(actualizado);
+
+        mockMvc.perform(put("/api/tickets/10")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(requestBody())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(10))
+                .andExpect(jsonPath("$.titulo").value("Ticket actualizado"));
+    }
+
+    @Test
+    void deleteTicketResponde204() throws Exception {
+        doNothing().when(ticketService).eliminarPorId(10L);
+
+        mockMvc.perform(delete("/api/tickets/10"))
+                .andExpect(status().isNoContent());
+
+        verify(ticketService).eliminarPorId(10L);
     }
 
     private Ticket ticket(Long id, String titulo) {

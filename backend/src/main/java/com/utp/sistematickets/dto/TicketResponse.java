@@ -1,8 +1,8 @@
-package com.utp.sistema_tickets.dto;
+package com.utp.sistematickets.dto;
 
-import com.utp.sistema_tickets.model.EstadoTicket;
-import com.utp.sistema_tickets.model.PrioridadTicket;
-import com.utp.sistema_tickets.model.Ticket;
+import com.utp.sistematickets.model.EstadoTicket;
+import com.utp.sistematickets.model.PrioridadTicket;
+import com.utp.sistematickets.model.Ticket;
 import java.time.LocalDateTime;
 
 public class TicketResponse {

@@ -2,10 +2,10 @@ package com.utp.sistematickets.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.utp.sistema_tickets.model.Categoria;
-import com.utp.sistema_tickets.model.PrioridadTicket;
-import com.utp.sistema_tickets.model.Ticket;
-import com.utp.sistema_tickets.model.Usuario;
+import com.utp.sistematickets.model.Categoria;
+import com.utp.sistematickets.model.PrioridadTicket;
+import com.utp.sistematickets.model.Ticket;
+import com.utp.sistematickets.model.Usuario;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

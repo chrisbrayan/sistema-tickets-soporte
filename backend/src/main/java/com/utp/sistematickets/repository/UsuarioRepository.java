@@ -1,6 +1,6 @@
 package com.utp.sistematickets.repository;
 
-import com.utp.sistema_tickets.model.Usuario;
+import com.utp.sistematickets.model.Usuario;
 import java.util.Optional;
 
 public interface UsuarioRepository {

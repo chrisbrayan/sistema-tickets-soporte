@@ -1,11 +1,11 @@
-package com.utp.sistema_tickets.controller;
+package com.utp.sistematickets.controller;
 
-import com.utp.sistema_tickets.dto.TicketRequest;
-import com.utp.sistema_tickets.dto.TicketResponse;
-import com.utp.sistema_tickets.model.Categoria;
-import com.utp.sistema_tickets.model.Ticket;
-import com.utp.sistema_tickets.model.Usuario;
-import com.utp.sistema_tickets.service.TicketService;
+import com.utp.sistematickets.dto.TicketRequest;
+import com.utp.sistematickets.dto.TicketResponse;
+import com.utp.sistematickets.model.Categoria;
+import com.utp.sistematickets.model.Ticket;
+import com.utp.sistematickets.model.Usuario;
+import com.utp.sistematickets.service.TicketService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
