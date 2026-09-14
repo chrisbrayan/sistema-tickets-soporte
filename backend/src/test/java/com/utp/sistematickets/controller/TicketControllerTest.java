@@ -75,7 +75,7 @@ class TicketControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.error").value("Not Found"))
-                .andExpect(jsonPath("$.message").value("Ticket no encontrado: 99"))
+                .andExpect(jsonPath("$.message").value("ticket no encontrado: 99"))
                 .andExpect(jsonPath("$.path").value("/api/tickets/99"));
     }
 
