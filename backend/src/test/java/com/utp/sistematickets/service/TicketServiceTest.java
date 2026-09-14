@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.utp.sistema_tickets.exception.TicketNotFoundException;
+import com.utp.sistema_tickets.exception.TicketValidationException;
 import com.utp.sistema_tickets.model.Categoria;
 import com.utp.sistema_tickets.model.EstadoTicket;
 import com.utp.sistema_tickets.model.PrioridadTicket;
@@ -58,6 +59,51 @@ class TicketServiceTest {
     void eliminarUnIdInexistenteLanzaExcepcionDeDominio() {
         assertThatThrownBy(() -> service.eliminarPorId(99L))
                 .isInstanceOf(TicketNotFoundException.class);
+    }
+
+    @Test
+    void actualizarConservaIdYFechaDeCreacion() {
+        Ticket creado = service.crear(ticket("Título original", 1L, 1L));
+        var fechaCreacion = creado.getFechaCreacion();
+
+        Ticket datos = ticket("Título actualizado", 1L, 2L);
+        datos.setPrioridad(PrioridadTicket.ALTA);
+        Ticket actualizado = service.actualizar(creado.getId(), datos);
+
+        assertThat(actualizado.getId()).isEqualTo(creado.getId());
+        assertThat(actualizado.getTitulo()).isEqualTo("Título actualizado");
+        assertThat(actualizado.getPrioridad()).isEqualTo(PrioridadTicket.ALTA);
+        assertThat(actualizado.getFechaCreacion()).isEqualTo(fechaCreacion);
+        assertThat(actualizado.getCategoria().getId()).isEqualTo(2L);
+    }
+
+    @Test
+    void actualizarTicketCerradoNoPuedeModificarse() {
+        Ticket creado = service.crear(ticket("Ticket cerrado", 1L, 1L));
+        creado.setEstado(EstadoTicket.CERRADO);
+        Ticket datosActualizados = ticket("Intento de reapertura", 1L, 1L);
+        datosActualizados.setEstado(EstadoTicket.EN_PROGRESO);
+
+        assertThatThrownBy(() -> service.actualizar(creado.getId(), datosActualizados))
+                .isInstanceOf(TicketValidationException.class)
+                .hasMessage("Un ticket cerrado no puede modificarse");
+    }
+
+    @Test
+    void crearRechazaUnaReferenciaInexistente() {
+        assertThatThrownBy(() -> service.crear(ticket("Referencia inválida", 1L, 99L)))
+                .isInstanceOf(TicketValidationException.class)
+                .hasMessage("Categoría no encontrada: 99");
+    }
+
+    @Test
+    void crearRechazaTecnicoQueNoTieneRolTecnico() {
+        Ticket ticket = ticket("Técnico inválido", 1L, 1L);
+        ticket.setTecnicoAsignado(new Usuario(1L, "Ana", "ana@example.com", null));
+
+        assertThatThrownBy(() -> service.crear(ticket))
+                .isInstanceOf(TicketValidationException.class)
+                .hasMessage("El usuario asignado no tiene rol TECNICO");
     }
 
     private Ticket ticket(String titulo, Long usuarioId, Long categoriaId) {
