@@ -1,13 +1,13 @@
 package com.utp.sistematickets.service;
 
-import com.utp.sistema_tickets.exception.TicketNotFoundException;
-import com.utp.sistema_tickets.exception.TicketValidationException;
-import com.utp.sistema_tickets.model.Categoria;
-import com.utp.sistema_tickets.model.Ticket;
-import com.utp.sistema_tickets.model.Usuario;
-import com.utp.sistema_tickets.repository.CategoriaRepository;
-import com.utp.sistema_tickets.repository.TicketRepository;
-import com.utp.sistema_tickets.repository.UsuarioRepository;
+import com.utp.sistematickets.exception.TicketNotFoundException;
+import com.utp.sistematickets.exception.TicketValidationException;
+import com.utp.sistematickets.model.Categoria;
+import com.utp.sistematickets.model.Ticket;
+import com.utp.sistematickets.model.Usuario;
+import com.utp.sistematickets.repository.CategoriaRepository;
+import com.utp.sistematickets.repository.TicketRepository;
+import com.utp.sistematickets.repository.UsuarioRepository;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Service;

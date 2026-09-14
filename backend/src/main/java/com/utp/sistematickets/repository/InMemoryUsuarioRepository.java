@@ -1,7 +1,7 @@
 package com.utp.sistematickets.repository;
 
-import com.utp.sistema_tickets.model.Rol;
-import com.utp.sistema_tickets.model.Usuario;
+import com.utp.sistematickets.model.Rol;
+import com.utp.sistematickets.model.Usuario;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;

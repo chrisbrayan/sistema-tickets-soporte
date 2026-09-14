@@ -1,4 +1,4 @@
-package com.utp.sistema_tickets.model;
+package com.utp.sistematickets.model;
 
 import java.util.Objects;
 
