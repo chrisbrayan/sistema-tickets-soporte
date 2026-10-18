@@ -1,20 +1,67 @@
-package com.utp.sistematickets.model;
+package com.utp.sistema_tickets.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 
+@Entity
+@Table(name = "tickets")
 public class Ticket {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, length = 180)
     private String titulo;
+
+    @Column(nullable = false, length = 2000)
     private String descripcion;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
     private PrioridadTicket prioridad;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
     private EstadoTicket estado;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "solicitante_id", nullable = false)
     private Usuario solicitante;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "categoria_id", nullable = false)
     private Categoria categoria;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tecnico_asignado_id")
     private Usuario tecnicoAsignado;
+
+    @Column(nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
+
+    @Column(nullable = false)
     private LocalDateTime fechaActualizacion;
+
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TicketHistorial> historial = new ArrayList<>();
 
     public Ticket() {
         this.estado = EstadoTicket.ABIERTO;
@@ -117,6 +164,33 @@ public class Ticket {
 
     public void setFechaActualizacion(LocalDateTime fechaActualizacion) {
         this.fechaActualizacion = fechaActualizacion;
+    }
+
+    public List<TicketHistorial> getHistorial() {
+        return historial;
+    }
+
+    public void agregarHistorial(TicketHistorial evento) {
+        historial.add(evento);
+        evento.setTicket(this);
+    }
+
+    @PrePersist
+    private void antesDePersistir() {
+        if (estado == null) {
+            estado = EstadoTicket.ABIERTO;
+        }
+        if (fechaCreacion == null) {
+            fechaCreacion = LocalDateTime.now();
+        }
+        if (fechaActualizacion == null) {
+            fechaActualizacion = fechaCreacion;
+        }
+    }
+
+    @PreUpdate
+    private void antesDeActualizar() {
+        fechaActualizacion = LocalDateTime.now();
     }
 
     private void marcarActualizacion() {

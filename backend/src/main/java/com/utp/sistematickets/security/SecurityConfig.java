@@ -37,7 +37,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
                 .sessionManagement(session -> session.sessionCreationPolicy(
                         org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exceptions -> exceptions
