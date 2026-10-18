@@ -1,3 +1,12 @@
+##Autores
+
+-Huamani Huarca Jose Alexander(Acund01)
+-Rodriguez Huillca Juan Ronaldo(aldersoneliot112233-bot)
+-Christian Brayan Choque Avalos(Chrisbrayan)
+-Fidel Quispesivana Huamani(fidelQhv)
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
 # Sistema de gestión de tickets de soporte técnico
 
 API REST inicial para registrar y gestionar solicitudes de soporte técnico de empleados o clientes.
