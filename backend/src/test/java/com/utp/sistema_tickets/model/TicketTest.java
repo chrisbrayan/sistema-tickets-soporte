@@ -1,4 +1,4 @@
-package com.utp.sistematickets.model;
+package com.utp.sistema_tickets.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

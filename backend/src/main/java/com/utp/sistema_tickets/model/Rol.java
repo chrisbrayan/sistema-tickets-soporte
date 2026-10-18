@@ -1,4 +1,4 @@
-package com.utp.sistematickets.model;
+package com.utp.sistema_tickets.model;
 
 public enum Rol {
     USUARIO,
