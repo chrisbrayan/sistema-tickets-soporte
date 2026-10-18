@@ -1,9 +1,9 @@
-##Autores
+## **Autores**
 
--Huamani Huarca Jose Alexander(Acund01)
--Rodriguez Huillca Juan Ronaldo(aldersoneliot112233-bot)
--Christian Brayan Choque Avalos(Chrisbrayan)
--Fidel Quispesivana Huamani(fidelQhv)
+* **Huamani Huarca Jose Alexander** — `Acund01`
+* **Rodriguez Huillca Juan Ronaldo** — `aldersoneliot112233-bot`
+* **Christian Brayan Choque Avalos** — `Chrisbrayan`
+* **Fidel Quispesivana Huamani** — `fidelQhv`
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 
