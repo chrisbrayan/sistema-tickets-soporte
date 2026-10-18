@@ -1,7 +1,7 @@
-package com.utp.sistematickets.dto;
+package com.utp.sistema_tickets.dto;
 
-import com.utp.sistematickets.model.EstadoTicket;
-import com.utp.sistematickets.model.PrioridadTicket;
+import com.utp.sistema_tickets.model.EstadoTicket;
+import com.utp.sistema_tickets.model.PrioridadTicket;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;

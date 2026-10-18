@@ -1,4 +1,4 @@
-package com.utp.sistematickets.controller;
+package com.utp.sistema_tickets.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -7,18 +7,21 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.utp.sistematickets.exception.TicketNotFoundException;
-import com.utp.sistematickets.model.Categoria;
-import com.utp.sistematickets.model.PrioridadTicket;
-import com.utp.sistematickets.model.Ticket;
-import com.utp.sistematickets.model.Usuario;
-import com.utp.sistematickets.service.TicketService;
+import com.utp.sistema_tickets.dto.TicketEstadoResumen;
+import com.utp.sistema_tickets.exception.TicketNotFoundException;
+import com.utp.sistema_tickets.model.Categoria;
+import com.utp.sistema_tickets.model.EstadoTicket;
+import com.utp.sistema_tickets.model.PrioridadTicket;
+import com.utp.sistema_tickets.model.Ticket;
+import com.utp.sistema_tickets.model.Usuario;
+import com.utp.sistema_tickets.service.TicketService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -114,6 +117,32 @@ class TicketControllerTest {
     }
 
     @Test
+    void getSearchFiltraPorEstadoYCategoria() throws Exception {
+        when(ticketService.buscarPorEstadoYCategoria(EstadoTicket.ABIERTO, 1L))
+                .thenReturn(List.of(ticket(10L, "Ticket de acceso")));
+
+        mockMvc.perform(get("/api/tickets/search")
+                        .param("estado", "ABIERTO")
+                        .param("categoriaId", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(10))
+                .andExpect(jsonPath("$[0].titulo").value("Ticket de acceso"));
+
+        verify(ticketService).buscarPorEstadoYCategoria(EstadoTicket.ABIERTO, 1L);
+    }
+
+    @Test
+    void getResumenPorEstadoRespondeAgrupaciones() throws Exception {
+        when(ticketService.resumenPorEstado())
+                .thenReturn(List.of(new TicketEstadoResumen(EstadoTicket.ABIERTO, 3L)));
+
+        mockMvc.perform(get("/api/tickets/resumen-por-estado"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].estado").value("ABIERTO"))
+                .andExpect(jsonPath("$[0].total").value(3));
+    }
+
+    @Test
     void putActualizaTicketYResponde200() throws Exception {
         Ticket actualizado = ticket(10L, "Ticket actualizado");
         when(ticketService.actualizar(eq(10L), any(Ticket.class))).thenReturn(actualizado);
@@ -124,6 +153,45 @@ class TicketControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(10))
                 .andExpect(jsonPath("$.titulo").value("Ticket actualizado"));
+    }
+
+    @Test
+    void patchAsignaTecnicoYResponde200() throws Exception {
+        Ticket actualizado = ticket(10L, "Ticket asignado");
+        actualizado.setTecnicoAsignado(new Usuario(2L, "Luis", "luis@example.com", null));
+        when(ticketService.asignarTecnico(10L, 2L, 3L, "Asignación inicial"))
+                .thenReturn(actualizado);
+
+        mockMvc.perform(patch("/api/tickets/10/asignacion")
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "tecnicoId": 2,
+                                  "usuarioEjecutorId": 3,
+                                  "comentario": "Asignación inicial"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tecnicoId").value(2));
+    }
+
+    @Test
+    void postCerrarTicketYResponde200() throws Exception {
+        Ticket cerrado = ticket(10L, "Ticket cerrado");
+        cerrado.setEstado(com.utp.sistema_tickets.model.EstadoTicket.CERRADO);
+        when(ticketService.cerrar(10L, 2L, "Atención finalizada")).thenReturn(cerrado);
+
+        mockMvc.perform(post("/api/tickets/10/cerrar")
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "estado": "CERRADO",
+                                  "usuarioEjecutorId": 2,
+                                  "comentario": "Atención finalizada"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("CERRADO"));
     }
 
     @Test

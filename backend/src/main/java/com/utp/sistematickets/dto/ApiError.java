@@ -1,4 +1,4 @@
-package com.utp.sistematickets.dto;
+package com.utp.sistema_tickets.dto;
 
 import java.time.LocalDateTime;
 
