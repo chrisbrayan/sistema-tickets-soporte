@@ -1,18 +1,18 @@
-package com.utp.sistematickets.service;
+package com.utp.sistema_tickets.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.utp.sistematickets.model.Categoria;
-import com.utp.sistematickets.model.EstadoTicket;
-import com.utp.sistematickets.model.PrioridadTicket;
-import com.utp.sistematickets.model.Rol;
-import com.utp.sistematickets.model.Ticket;
-import com.utp.sistematickets.model.Usuario;
-import com.utp.sistematickets.repository.CategoriaRepository;
-import com.utp.sistematickets.repository.TicketHistorialRepository;
-import com.utp.sistematickets.repository.TicketRepository;
-import com.utp.sistematickets.repository.UsuarioRepository;
+import com.utp.sistema_tickets.model.Categoria;
+import com.utp.sistema_tickets.model.EstadoTicket;
+import com.utp.sistema_tickets.model.PrioridadTicket;
+import com.utp.sistema_tickets.model.Rol;
+import com.utp.sistema_tickets.model.Ticket;
+import com.utp.sistema_tickets.model.Usuario;
+import com.utp.sistema_tickets.repository.CategoriaRepository;
+import com.utp.sistema_tickets.repository.TicketHistorialRepository;
+import com.utp.sistema_tickets.repository.TicketRepository;
+import com.utp.sistema_tickets.repository.UsuarioRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

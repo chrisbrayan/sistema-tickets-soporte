@@ -1,8 +1,8 @@
-package com.utp.sistematickets.security;
+package com.utp.sistema_tickets.security;
 
-import com.utp.sistematickets.model.Rol;
-import com.utp.sistematickets.model.Usuario;
-import com.utp.sistematickets.repository.UsuarioRepository;
+import com.utp.sistema_tickets.model.Rol;
+import com.utp.sistema_tickets.model.Usuario;
+import com.utp.sistema_tickets.repository.UsuarioRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
