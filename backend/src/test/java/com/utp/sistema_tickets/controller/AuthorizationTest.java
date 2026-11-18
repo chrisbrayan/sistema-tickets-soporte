@@ -40,7 +40,8 @@ class AuthorizationTest {
     @Autowired
     private TicketHistorialRepository historialRepository;
 
-    private Long ticketDeOtroUsuarioId;
+    private Long ticketAsignadoACarlosId;
+    private Long ticketAsignadoAMartaId;
 
     @BeforeEach
     void setUp() {
@@ -48,38 +49,75 @@ class AuthorizationTest {
         ticketRepository.deleteAll();
         categoriaRepository.deleteAll();
 
-        Usuario luis = usuarioRepository.findByEmailIgnoreCase("luis.tecnico@example.com").orElseThrow();
+        Usuario carlos = usuarioRepository.findByEmailIgnoreCase("tecnico@soporte.com").orElseThrow();
+        Usuario marta = usuarioRepository.findByEmailIgnoreCase("tecnico2@soporte.com").orElseThrow();
+        Usuario sofia = usuarioRepository.findByEmailIgnoreCase("sofia@soporte.com").orElseThrow();
         Categoria categoria = categoriaRepository.save(new Categoria(null, "Autorización", "Pruebas de acceso"));
-        Ticket ticket = new Ticket("Ticket de Luis", "No debe verlo Ana", PrioridadTicket.MEDIA,
-                luis, categoria);
-        ticketDeOtroUsuarioId = ticketRepository.save(ticket).getId();
+
+        Ticket asignadoACarlos = new Ticket("Ticket asignado a Carlos", "Detalle visible para Carlos",
+                PrioridadTicket.MEDIA, sofia, categoria);
+        asignadoACarlos.setTecnicoAsignado(carlos);
+        ticketAsignadoACarlosId = ticketRepository.save(asignadoACarlos).getId();
+
+        Ticket asignadoAMarta = new Ticket("Ticket asignado a Marta", "No debe verlo Carlos",
+                PrioridadTicket.MEDIA, sofia, categoria);
+        asignadoAMarta.setTecnicoAsignado(marta);
+        ticketAsignadoAMartaId = ticketRepository.save(asignadoAMarta).getId();
     }
 
     @Test
     void usuarioNoPuedeConsultarTicketDeOtroUsuario() throws Exception {
-        String token = login("ana.usuario@example.com", "ana1234");
+        String token = login("usuario@soporte.com", "usuario123");
 
-        mockMvc.perform(get("/api/tickets/{id}", ticketDeOtroUsuarioId)
+        mockMvc.perform(get("/api/tickets/{id}", ticketAsignadoACarlosId)
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void tecnicoPuedeConsultarTicketDeOtroUsuario() throws Exception {
-        String token = login("luis.tecnico@example.com", "tecnico1234");
+    void tecnicoPuedeConsultarTicketAsignado() throws Exception {
+        String token = login("tecnico@soporte.com", "tecnico123");
 
-        mockMvc.perform(get("/api/tickets/{id}", ticketDeOtroUsuarioId)
+        mockMvc.perform(get("/api/tickets/{id}", ticketAsignadoACarlosId)
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void usuarioNoPuedeAdministrarCategorias() throws Exception {
-        String token = login("ana.usuario@example.com", "ana1234");
+    void tecnicoNoPuedeConsultarTicketNoAsignado() throws Exception {
+        String token = login("tecnico@soporte.com", "tecnico123");
+
+        mockMvc.perform(get("/api/tickets/{id}", ticketAsignadoAMartaId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void tecnicoNoPuedeCrearTickets() throws Exception {
+        String token = login("tecnico@soporte.com", "tecnico123");
+
+        mockMvc.perform(post("/api/tickets")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "titulo": "Intento de técnico",
+                                  "descripcion": "No debe crearse",
+                                  "prioridad": "BAJA",
+                                  "usuarioId": 2,
+                                  "categoriaId": 1
+                                }
+                                """))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void usuarioPuedeConsultarCatalogoCategorias() throws Exception {
+        String token = login("usuario@soporte.com", "usuario123");
 
         mockMvc.perform(get("/api/categorias")
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     private String login(String email, String password) throws Exception {

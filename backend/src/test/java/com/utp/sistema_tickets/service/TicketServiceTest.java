@@ -50,7 +50,7 @@ class TicketServiceTest {
             persistedTickets.put(ticket.getId(), ticket);
             return ticket;
         });
-        when(ticketRepository.findById(anyLong()))
+        when(ticketRepository.findByIdWithRelations(anyLong()))
                 .thenAnswer(invocation -> Optional.ofNullable(persistedTickets.get(invocation.getArgument(0))));
         doAnswer(invocation -> {
             persistedTickets.remove(invocation.getArgument(0));
