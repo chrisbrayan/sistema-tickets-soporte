@@ -50,7 +50,7 @@ class UsuarioControllerTest {
     @Test
     void administradorPuedeCrearUnUsuarioConRolTecnico() throws Exception {
         String email = "tecnico." + System.nanoTime() + "@empresa.test";
-        String token = login("maria.admin@example.com", "admin1234");
+        String token = login("admin@soporte.com", "admin123");
 
         mockMvc.perform(post("/api/usuarios")
                         .header("Authorization", "Bearer " + token)
@@ -68,7 +68,7 @@ class UsuarioControllerTest {
 
     @Test
     void usuarioNormalNoPuedeCrearUsuariosAdministrados() throws Exception {
-        String token = login("ana.usuario@example.com", "ana1234");
+        String token = login("usuario@soporte.com", "usuario123");
 
         mockMvc.perform(post("/api/usuarios")
                         .header("Authorization", "Bearer " + token)
@@ -82,7 +82,7 @@ class UsuarioControllerTest {
     void registroConEmailDuplicadoResponde400() throws Exception {
         mockMvc.perform(post("/api/auth/registro")
                         .contentType("application/json")
-                        .content("{\"nombre\":\"Duplicado\",\"email\":\"ana.usuario@example.com\","
+                        .content("{\"nombre\":\"Duplicado\",\"email\":\"usuario@soporte.com\","
                                 + "\"password\":\"usuario123\"}"))
                 .andExpect(status().isBadRequest());
     }
