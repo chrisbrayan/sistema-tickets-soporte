@@ -1,0 +1,264 @@
+{
+  "info": {
+    "_postman_id": "a8e9c2f0-6c5a-4b3d-9f32-8a2c5e7b1002",
+    "name": "Sistema Tickets - APF2",
+    "description": "Flujo autenticado de la API REST persistente de tickets, con JWT, roles y casos de error.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "token", "value": "" },
+    { "key": "usuarioToken", "value": "" },
+    { "key": "tecnicoToken", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "ticketId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Autenticación",
+      "item": [
+        {
+          "name": "Login - USUARIO",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"ana.usuario@example.com\",\n  \"password\": \"ana1234\"\n}" },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Login de usuario responde 200', function () { pm.response.to.have.status(200); });",
+            "const body = pm.response.json();",
+            "pm.collectionVariables.set('usuarioToken', body.token);",
+            "pm.collectionVariables.set('token', body.token);",
+            "pm.test('La respuesta contiene un JWT', function () { pm.expect(body.token).to.be.a('string').and.not.empty; });"
+          ] } }]
+        },
+        {
+          "name": "Login - TECNICO",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"luis.tecnico@example.com\",\n  \"password\": \"tecnico1234\"\n}" },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Login de técnico responde 200', function () { pm.response.to.have.status(200); });",
+            "const body = pm.response.json();",
+            "pm.collectionVariables.set('tecnicoToken', body.token);",
+            "pm.collectionVariables.set('token', body.token);",
+            "pm.test('El rol devuelto es TECNICO', function () { pm.expect(body.role).to.eql('TECNICO'); });"
+          ] } }]
+        },
+        {
+          "name": "Login - ADMIN",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"maria.admin@example.com\",\n  \"password\": \"admin1234\"\n}" },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Login de admin responde 200', function () { pm.response.to.have.status(200); });",
+            "const body = pm.response.json();",
+            "pm.collectionVariables.set('adminToken', body.token);",
+            "pm.collectionVariables.set('token', body.token);",
+            "pm.test('El rol devuelto es ADMIN', function () { pm.expect(body.role).to.eql('ADMIN'); });"
+          ] } }]
+        },
+        {
+          "name": "Error - login inválido 401",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"ana.usuario@example.com\",\n  \"password\": \"incorrecta\"\n}" },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Credenciales inválidas responden 401', function () { pm.response.to.have.status(401); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "Tickets - flujo principal",
+      "item": [
+        {
+          "name": "Crear ticket - USUARIO",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{usuarioToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"titulo\": \"No puedo acceder al correo\",\n  \"descripcion\": \"El sistema rechaza mis credenciales desde esta mañana.\",\n  \"prioridad\": \"MEDIA\",\n  \"usuarioId\": 1,\n  \"categoriaId\": 1\n}" },
+            "url": "{{baseUrl}}/api/tickets"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Crear ticket responde 201', function () { pm.response.to.have.status(201); });",
+            "pm.collectionVariables.set('ticketId', pm.response.json().id);"
+          ] } }]
+        },
+        {
+          "name": "Listar tickets - TECNICO",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tecnicoToken}}" }],
+            "url": "{{baseUrl}}/api/tickets"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Listar tickets responde 200', function () { pm.response.to.have.status(200); });"
+          ] } }]
+        },
+        {
+          "name": "Obtener ticket - USUARIO propietario",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{usuarioToken}}" }],
+            "url": "{{baseUrl}}/api/tickets/{{ticketId}}"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('El propietario puede consultar su ticket', function () { pm.response.to.have.status(200); });"
+          ] } }]
+        },
+        {
+          "name": "Modificar ticket - TECNICO",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{tecnicoToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"titulo\": \"Acceso al correo en revisión\",\n  \"descripcion\": \"El técnico está revisando las credenciales.\",\n  \"prioridad\": \"ALTA\",\n  \"estado\": \"EN_PROGRESO\",\n  \"usuarioId\": 1,\n  \"categoriaId\": 1,\n  \"tecnicoId\": 2\n}" },
+            "url": "{{baseUrl}}/api/tickets/{{ticketId}}"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Modificar ticket responde 200', function () { pm.response.to.have.status(200); });"
+          ] } }]
+        },
+        {
+          "name": "Asignar técnico - TECNICO",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{tecnicoToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"tecnicoId\": 2,\n  \"usuarioEjecutorId\": 2,\n  \"comentario\": \"Asignación realizada desde Postman\"\n}" },
+            "url": "{{baseUrl}}/api/tickets/{{ticketId}}/asignacion"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Asignar técnico responde 200', function () { pm.response.to.have.status(200); });"
+          ] } }]
+        },
+        {
+          "name": "Eliminar ticket - ADMIN",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/api/tickets/{{ticketId}}"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Eliminar ticket responde 204', function () { pm.response.to.have.status(204); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "Errores y autorización",
+      "item": [
+        {
+          "name": "Error - listado sin token 401",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/tickets" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Ruta protegida sin token responde 401', function () { pm.response.to.have.status(401); });"
+          ] } }]
+        },
+        {
+          "name": "Error - usuario administra categorías 403",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{usuarioToken}}" }],
+            "url": "{{baseUrl}}/api/categorias"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Usuario sin permiso responde 403', function () { pm.response.to.have.status(403); });"
+          ] } }]
+        },
+        {
+          "name": "Error - validación 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{usuarioToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"titulo\": \"\",\n  \"descripcion\": \"Descripción sin título válido\",\n  \"prioridad\": \"MEDIA\",\n  \"usuarioId\": 1,\n  \"categoriaId\": 1\n}" },
+            "url": "{{baseUrl}}/api/tickets"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Validación responde 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        },
+        {
+          "name": "Error - ticket inexistente 404",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/api/tickets/999999"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Ticket inexistente responde 404', function () { pm.response.to.have.status(404); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "Usuarios",
+      "item": [
+        {
+          "name": "Registro público - USUARIO",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Carlos Soporte\",\n  \"email\": \"carlos@empresa.test\",\n  \"password\": \"carlos1234\"\n}" },
+            "url": "{{baseUrl}}/api/auth/registro"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Registro público responde 201', function () { pm.response.to.have.status(201); });",
+            "pm.test('El rol asignado es USUARIO', function () { pm.expect(pm.response.json().rol).to.eql('USUARIO'); });"
+          ] } }]
+        },
+        {
+          "name": "Crear usuario - ADMIN",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Técnico adicional\",\n  \"email\": \"tecnico2@empresa.test\",\n  \"password\": \"tecnico1234\",\n  \"rol\": \"TECNICO\"\n}" },
+            "url": "{{baseUrl}}/api/usuarios"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('ADMIN puede crear usuarios responde 201', function () { pm.response.to.have.status(201); });"
+          ] } }]
+        },
+        {
+          "name": "Usuario no puede crear usuarios - 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{usuarioToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Intento no autorizado\",\n  \"email\": \"no-autorizado@empresa.test\",\n  \"password\": \"usuario1234\",\n  \"rol\": \"ADMIN\"\n}" },
+            "url": "{{baseUrl}}/api/usuarios"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('USUARIO no puede crear usuarios responde 403', function () { pm.response.to.have.status(403); });"
+          ] } }]
+        }
+      ]
+    }
+  ]
+}
