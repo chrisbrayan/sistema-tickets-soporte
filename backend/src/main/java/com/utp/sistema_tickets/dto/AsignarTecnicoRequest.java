@@ -1,13 +1,9 @@
 package com.utp.sistema_tickets.dto;
 
-import jakarta.validation.constraints.NotNull;
-
 public class AsignarTecnicoRequest {
 
-    @NotNull(message = "El técnico es obligatorio")
     private Long tecnicoId;
 
-    @NotNull(message = "El usuario ejecutor es obligatorio")
     private Long usuarioEjecutorId;
 
     private String comentario;

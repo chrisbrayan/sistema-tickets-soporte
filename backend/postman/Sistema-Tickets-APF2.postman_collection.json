@@ -22,7 +22,7 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"ana.usuario@example.com\",\n  \"password\": \"ana1234\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"usuario@soporte.com\",\n  \"password\": \"usuario123\"\n}" },
             "url": "{{baseUrl}}/api/auth/login"
           },
           "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
@@ -38,7 +38,7 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"luis.tecnico@example.com\",\n  \"password\": \"tecnico1234\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"tecnico@soporte.com\",\n  \"password\": \"tecnico123\"\n}" },
             "url": "{{baseUrl}}/api/auth/login"
           },
           "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
@@ -54,7 +54,7 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"maria.admin@example.com\",\n  \"password\": \"admin1234\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@soporte.com\",\n  \"password\": \"admin123\"\n}" },
             "url": "{{baseUrl}}/api/auth/login"
           },
           "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
@@ -70,7 +70,7 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"ana.usuario@example.com\",\n  \"password\": \"incorrecta\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"usuario@soporte.com\",\n  \"password\": \"incorrecta\"\n}" },
             "url": "{{baseUrl}}/api/auth/login"
           },
           "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [

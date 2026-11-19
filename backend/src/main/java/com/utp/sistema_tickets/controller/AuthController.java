@@ -6,8 +6,6 @@ import com.utp.sistema_tickets.dto.RegistroRequest;
 import com.utp.sistema_tickets.dto.UsuarioResponse;
 import com.utp.sistema_tickets.security.JwtService;
 import com.utp.sistema_tickets.service.UsuarioService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import org.springframework.http.HttpStatus;
@@ -22,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
-@Tag(name = "Autenticación", description = "Registro e inicio de sesión.")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -37,7 +34,6 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    @Operation(summary = "Iniciar sesión", description = "Valida las credenciales y devuelve un JWT junto con el rol del usuario.")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail().trim(), request.getPassword()));
@@ -60,7 +56,6 @@ public class AuthController {
     }
 
     @PostMapping("/registro")
-    @Operation(summary = "Registrar usuario", description = "Crea una cuenta pública con rol USUARIO; no permite elegir un rol administrativo.")
     public ResponseEntity<UsuarioResponse> registrar(@Valid @RequestBody RegistroRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(UsuarioResponse.from(usuarioService.registrarUsuario(

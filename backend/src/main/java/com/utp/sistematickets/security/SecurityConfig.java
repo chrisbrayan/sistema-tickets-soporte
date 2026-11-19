@@ -2,9 +2,13 @@ package com.utp.sistema_tickets.security;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.time.LocalDateTime;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -35,9 +39,23 @@ public class SecurityConfig {
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:4200"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(
                         org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exceptions -> exceptions
@@ -50,14 +68,25 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/auth/login", "/api/auth/registro", "/swagger-ui/**", "/swagger-ui.html",
                                 "/v3/api-docs/**", "/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categorias")
+                        .hasAnyRole("USUARIO", "TECNICO", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios/catalogo")
+                        .hasAnyRole("TECNICO", "ADMIN")
                         .requestMatchers("/api/usuarios/**", "/api/categorias/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/tickets/search", "/api/tickets/filtrar",
-                                "/api/tickets/resumen-por-estado", "/api/tickets/mis-asignados")
+                                "/api/tickets/resumen-por-estado")
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/tickets/mis-asignados")
                         .hasAnyRole("TECNICO", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/tickets/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/tickets/**").hasAnyRole("TECNICO", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/tickets/**").hasAnyRole("TECNICO", "ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/tickets/**").hasAnyRole("USUARIO", "TECNICO", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/tickets/*/asignacion").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/tickets/*/estado")
+                        .hasAnyRole("TECNICO", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/tickets/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/tickets/*/cerrar")
+                        .hasAnyRole("USUARIO", "TECNICO", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/tickets/**")
+                        .hasAnyRole("USUARIO", "ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
