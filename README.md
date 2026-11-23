@@ -1,3 +1,11 @@
+## **Autores**
+
+* **Huamani Huarca Jose Alexander** — `Acund01`
+* **Rodriguez Huillca Juan Ronaldo** — `aldersoneliot112233-bot`
+* **Christian Brayan Choque Avalos** — `Chrisbrayan`
+* **Fidel Quispesivana Huamani** — `fidelQhv`
+
+---------------------------------------------------------------------------------------------------------------------------------------
 # Sistema de gestión de tickets de soporte técnico
 
 ## APF3 — Frontend Angular integrado con Spring Boot
