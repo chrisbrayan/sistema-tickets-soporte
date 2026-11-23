@@ -13,14 +13,21 @@ public class TicketResponse {
     private final PrioridadTicket prioridad;
     private final EstadoTicket estado;
     private final Long usuarioId;
+    private final String usuarioNombre;
+    private final String usuarioEmail;
     private final Long categoriaId;
+    private final String categoriaNombre;
     private final Long tecnicoId;
+    private final String tecnicoNombre;
+    private final String tecnicoEmail;
     private final LocalDateTime fechaCreacion;
     private final LocalDateTime fechaActualizacion;
 
     private TicketResponse(Long id, String titulo, String descripcion,
                            PrioridadTicket prioridad, EstadoTicket estado,
-                           Long usuarioId, Long categoriaId, Long tecnicoId,
+                           Long usuarioId, String usuarioNombre, String usuarioEmail,
+                           Long categoriaId, String categoriaNombre,
+                           Long tecnicoId, String tecnicoNombre, String tecnicoEmail,
                            LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion) {
         this.id = id;
         this.titulo = titulo;
@@ -28,8 +35,13 @@ public class TicketResponse {
         this.prioridad = prioridad;
         this.estado = estado;
         this.usuarioId = usuarioId;
+        this.usuarioNombre = usuarioNombre;
+        this.usuarioEmail = usuarioEmail;
         this.categoriaId = categoriaId;
+        this.categoriaNombre = categoriaNombre;
         this.tecnicoId = tecnicoId;
+        this.tecnicoNombre = tecnicoNombre;
+        this.tecnicoEmail = tecnicoEmail;
         this.fechaCreacion = fechaCreacion;
         this.fechaActualizacion = fechaActualizacion;
     }
@@ -42,8 +54,13 @@ public class TicketResponse {
                 ticket.getPrioridad(),
                 ticket.getEstado(),
                 ticket.getSolicitante().getId(),
+                ticket.getSolicitante().getNombre(),
+                ticket.getSolicitante().getEmail(),
                 ticket.getCategoria().getId(),
+                ticket.getCategoria().getNombre(),
                 ticket.getTecnicoAsignado() == null ? null : ticket.getTecnicoAsignado().getId(),
+                ticket.getTecnicoAsignado() == null ? null : ticket.getTecnicoAsignado().getNombre(),
+                ticket.getTecnicoAsignado() == null ? null : ticket.getTecnicoAsignado().getEmail(),
                 ticket.getFechaCreacion(),
                 ticket.getFechaActualizacion()
         );
@@ -73,12 +90,32 @@ public class TicketResponse {
         return usuarioId;
     }
 
+    public String getUsuarioNombre() {
+        return usuarioNombre;
+    }
+
+    public String getUsuarioEmail() {
+        return usuarioEmail;
+    }
+
     public Long getCategoriaId() {
         return categoriaId;
     }
 
+    public String getCategoriaNombre() {
+        return categoriaNombre;
+    }
+
     public Long getTecnicoId() {
         return tecnicoId;
+    }
+
+    public String getTecnicoNombre() {
+        return tecnicoNombre;
+    }
+
+    public String getTecnicoEmail() {
+        return tecnicoEmail;
     }
 
     public LocalDateTime getFechaCreacion() {

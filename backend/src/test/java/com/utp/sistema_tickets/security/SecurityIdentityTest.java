@@ -28,16 +28,16 @@ class SecurityIdentityTest {
 
     @Test
     void usuariosInicialesUsanPasswordBcryptYRolesValidos() {
-        assertUser("ana.usuario@example.com", "ana1234", Rol.USUARIO);
-        assertUser("luis.tecnico@example.com", "tecnico1234", Rol.TECNICO);
-        assertUser("maria.admin@example.com", "admin1234", Rol.ADMIN);
+        assertUser("usuario@soporte.com", "usuario123", Rol.USUARIO);
+        assertUser("tecnico@soporte.com", "tecnico123", Rol.TECNICO);
+        assertUser("admin@soporte.com", "admin123", Rol.ADMIN);
     }
 
     @Test
     void userDetailsCargaElRolPersistidoComoAutoridadSpring() {
-        UserDetails tecnico = userDetailsService.loadUserByUsername("luis.tecnico@example.com");
+        UserDetails tecnico = userDetailsService.loadUserByUsername("tecnico@soporte.com");
 
-        assertThat(tecnico.getUsername()).isEqualTo("luis.tecnico@example.com");
+        assertThat(tecnico.getUsername()).isEqualTo("tecnico@soporte.com");
         assertThat(tecnico.getAuthorities())
                 .extracting(authority -> authority.getAuthority())
                 .containsExactly("ROLE_TECNICO");

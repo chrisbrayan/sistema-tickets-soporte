@@ -1,4 +1,4 @@
-package com.utp.sistematickets.exception;
+package com.utp.sistema_tickets.exception;
 
 public class TicketValidationException extends RuntimeException {
 
@@ -6,4 +6,3 @@ public class TicketValidationException extends RuntimeException {
         super(message);
     }
 }
-

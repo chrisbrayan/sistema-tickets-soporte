@@ -1,14 +1,16 @@
-package com.utp.sistematickets.controller;
+package com.utp.sistema_tickets.controller;
 
-import com.utp.sistematickets.dto.ApiError;
-import com.utp.sistematickets.exception.TicketNotFoundException;
-import com.utp.sistematickets.exception.TicketValidationException;
+import com.utp.sistema_tickets.dto.ApiError;
+import com.utp.sistema_tickets.exception.TicketNotFoundException;
+import com.utp.sistema_tickets.exception.TicketValidationException;
+import com.utp.sistema_tickets.exception.UsuarioValidationException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -22,7 +24,8 @@ public class ApiExceptionHandler {
         return build(HttpStatus.NOT_FOUND, exception.getMessage(), request);
     }
 
-    @ExceptionHandler({TicketValidationException.class, MethodArgumentNotValidException.class,
+    @ExceptionHandler({TicketValidationException.class, UsuarioValidationException.class,
+            MethodArgumentNotValidException.class,
             HttpMessageNotReadableException.class})
     public ResponseEntity<ApiError> handleBadRequest(Exception exception,
                                                       HttpServletRequest request) {
@@ -32,6 +35,12 @@ public class ApiExceptionHandler {
                 ? "El cuerpo de la solicitud no tiene un formato válido"
                 : exception.getMessage();
         return build(HttpStatus.BAD_REQUEST, message, request);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiError> handleBadCredentials(BadCredentialsException exception,
+                                                          HttpServletRequest request) {
+        return build(HttpStatus.UNAUTHORIZED, "Credenciales inválidas", request);
     }
 
     private String validationMessage(MethodArgumentNotValidException exception) {
