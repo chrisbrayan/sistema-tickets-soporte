@@ -1,20 +1,21 @@
-package com.utp.sistematickets.service;
+package com.utp.sistema_tickets.service;
 
-import com.utp.sistematickets.exception.TicketNotFoundException;
-import com.utp.sistematickets.exception.TicketValidationException;
-import com.utp.sistematickets.dto.TicketEstadoResumen;
-import com.utp.sistematickets.model.Categoria;
-import com.utp.sistematickets.model.EstadoTicket;
-import com.utp.sistematickets.model.PrioridadTicket;
-import com.utp.sistematickets.model.Rol;
-import com.utp.sistematickets.model.Ticket;
-import com.utp.sistematickets.model.TicketHistorial;
-import com.utp.sistematickets.model.Usuario;
+import com.utp.sistema_tickets.exception.TicketNotFoundException;
+import com.utp.sistema_tickets.exception.TicketValidationException;
+import com.utp.sistema_tickets.dto.TicketEstadoResumen;
+import com.utp.sistema_tickets.dto.TicketHistorialResponse;
+import com.utp.sistema_tickets.model.Categoria;
+import com.utp.sistema_tickets.model.EstadoTicket;
+import com.utp.sistema_tickets.model.PrioridadTicket;
+import com.utp.sistema_tickets.model.Rol;
+import com.utp.sistema_tickets.model.Ticket;
+import com.utp.sistema_tickets.model.TicketHistorial;
+import com.utp.sistema_tickets.model.Usuario;
 import java.time.LocalDateTime;
-import com.utp.sistematickets.repository.CategoriaRepository;
-import com.utp.sistematickets.repository.TicketHistorialRepository;
-import com.utp.sistematickets.repository.TicketRepository;
-import com.utp.sistematickets.repository.UsuarioRepository;
+import com.utp.sistema_tickets.repository.CategoriaRepository;
+import com.utp.sistema_tickets.repository.TicketHistorialRepository;
+import com.utp.sistema_tickets.repository.TicketRepository;
+import com.utp.sistema_tickets.repository.UsuarioRepository;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
@@ -52,23 +53,38 @@ public class TicketService {
         return creado;
     }
 
+    @Transactional
+    public Ticket crearComoUsuario(Ticket ticket, String emailAutenticado) {
+        Usuario autenticado = usuarioRepository.findByEmailIgnoreCase(emailAutenticado)
+                .orElseThrow(() -> new TicketValidationException(
+                        "Usuario autenticado no encontrado: " + emailAutenticado));
+        if (ticket == null || ticket.getSolicitante() == null
+                || !Objects.equals(ticket.getSolicitante().getId(), autenticado.getId())) {
+            throw new TicketValidationException(
+                    "El usuario solicitante debe coincidir con el usuario autenticado");
+        }
+        ticket.setTecnicoAsignado(null);
+        ticket.setEstado(EstadoTicket.ABIERTO);
+        return crear(ticket);
+    }
+
     public List<Ticket> listar() {
-        return ticketRepository.findAll();
+        return ticketRepository.findAllWithRelations();
     }
 
     @Transactional(readOnly = true)
     public List<Ticket> listarVisibles(String email, boolean puedeVerTodos) {
         return puedeVerTodos
-                ? ticketRepository.findAll()
-                : ticketRepository.findBySolicitanteEmailIgnoreCaseOrderByFechaCreacionDesc(email);
+                ? ticketRepository.findAllWithRelations()
+                : ticketRepository.findBySolicitanteEmailIgnoreCaseOrderByIdDesc(email);
     }
 
     public List<Ticket> buscarPorEstadoYCategoria(EstadoTicket estado, Long categoriaId) {
         return ticketRepository.buscarPorEstadoYCategoria(estado, categoriaId);
     }
 
-    public List<Ticket> buscarAsignadosNoCerrados(Long tecnicoId) {
-        return ticketRepository.buscarAsignadosNoCerrados(tecnicoId);
+    public List<Ticket> buscarAsignados(Long tecnicoId) {
+        return ticketRepository.buscarAsignados(tecnicoId);
     }
 
     public List<Ticket> buscarConFiltros(EstadoTicket estado,
@@ -84,7 +100,7 @@ public class TicketService {
     }
 
     public Ticket obtenerPorId(Long id) {
-        return ticketRepository.findById(id)
+        return ticketRepository.findByIdWithRelations(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
     }
 
@@ -97,21 +113,34 @@ public class TicketService {
                 .orElseThrow(() -> new TicketNotFoundException(id));
     }
 
+    @Transactional(readOnly = true)
+    public Ticket obtenerAsignado(Long id, String email) {
+        return ticketRepository.findByIdAndTecnicoEmailIgnoreCase(id, email)
+                .orElseThrow(() -> new TicketNotFoundException(id));
+    }
+
     @Transactional
     public Ticket actualizar(Long id, Ticket datosActualizados) {
         Ticket actual = obtenerPorId(id);
         validarEstadoActualizable(actual);
         EstadoTicket estadoAnterior = actual.getEstado();
         validarTicket(datosActualizados);
+        normalizarCamposTexto(datosActualizados);
         normalizarReferencias(datosActualizados);
 
-        datosActualizados.setId(id);
-        datosActualizados.setFechaCreacion(actual.getFechaCreacion());
-        if (datosActualizados.getEstado() == null) {
-            datosActualizados.setEstado(actual.getEstado());
+        actual.setTitulo(datosActualizados.getTitulo());
+        actual.setDescripcion(datosActualizados.getDescripcion());
+        actual.setPrioridad(datosActualizados.getPrioridad());
+        actual.setSolicitante(datosActualizados.getSolicitante());
+        actual.setCategoria(datosActualizados.getCategoria());
+        if (datosActualizados.getTecnicoAsignado() != null) {
+            actual.setTecnicoAsignado(datosActualizados.getTecnicoAsignado());
+        }
+        if (datosActualizados.getEstado() != null) {
+            actual.setEstado(datosActualizados.getEstado());
         }
 
-        Ticket actualizado = ticketRepository.save(datosActualizados);
+        Ticket actualizado = ticketRepository.save(actual);
         if (!Objects.equals(estadoAnterior, actualizado.getEstado())) {
             registrarHistorial(actualizado, estadoAnterior, actualizado.getEstado(),
                     actualizado.getSolicitante(), "Estado actualizado");
@@ -133,10 +162,18 @@ public class TicketService {
         }
 
         Usuario usuarioEjecutor = obtenerUsuarioEjecutor(usuarioEjecutorId);
+        if (usuarioEjecutor.getRol() != Rol.ADMIN) {
+            throw new TicketValidationException("Solo un ADMIN puede asignar técnicos");
+        }
+        Usuario tecnicoAnterior = ticket.getTecnicoAsignado();
+        if (tecnicoAnterior != null
+                && !Objects.equals(tecnicoAnterior.getId(), tecnico.getId())) {
+            ticketHistorialRepository.vincularTecnicoAnterior(ticketId, tecnicoAnterior);
+        }
         ticket.setTecnicoAsignado(tecnico);
         Ticket actualizado = ticketRepository.save(ticket);
         registrarHistorial(actualizado, actualizado.getEstado(), actualizado.getEstado(),
-                usuarioEjecutor, comentarioNormalizado(comentario, "Técnico asignado"));
+                usuarioEjecutor, comentarioNormalizado(comentario, "Técnico asignado"), tecnico);
         return actualizado;
     }
 
@@ -161,6 +198,41 @@ public class TicketService {
     @Transactional
     public Ticket cerrar(Long ticketId, Long usuarioEjecutorId, String comentario) {
         return cambiarEstado(ticketId, EstadoTicket.CERRADO, usuarioEjecutorId, comentario);
+    }
+
+    @Transactional
+    public Ticket cerrarComoSolicitante(Long ticketId, String emailAutenticado, String comentario) {
+        Ticket ticket = obtenerVisible(ticketId, emailAutenticado, false);
+        validarEstadoActualizable(ticket);
+        Usuario solicitante = usuarioRepository.findByEmailIgnoreCase(emailAutenticado)
+                .orElseThrow(() -> new TicketValidationException(
+                        "Usuario autenticado no encontrado: " + emailAutenticado));
+        EstadoTicket estadoAnterior = ticket.getEstado();
+        ticket.setEstado(EstadoTicket.CERRADO);
+        Ticket cerrado = ticketRepository.save(ticket);
+        registrarHistorial(cerrado, estadoAnterior, EstadoTicket.CERRADO, solicitante,
+                comentarioNormalizado(comentario, "Solicitud cerrada por el solicitante"));
+        return cerrado;
+    }
+
+    @Transactional(readOnly = true)
+    public List<TicketHistorialResponse> historialVisible(Long ticketId, String email, boolean puedeVerTodos) {
+        if (puedeVerTodos) {
+            obtenerPorId(ticketId);
+        } else {
+            obtenerVisible(ticketId, email, false);
+        }
+        return ticketHistorialRepository.findByTicketIdOrderByFechaEventoAsc(ticketId).stream()
+                .map(TicketHistorialResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<TicketHistorialResponse> historialParaTecnico(Long ticketId, String email) {
+        obtenerAsignado(ticketId, email);
+        return ticketHistorialRepository.findByTicketIdOrderByFechaEventoAsc(ticketId).stream()
+                .map(TicketHistorialResponse::from)
+                .toList();
     }
 
     public void eliminarPorId(Long id) {
@@ -191,14 +263,22 @@ public class TicketService {
 
     private void normalizarCamposTexto(Ticket ticket) {
         ticket.setTitulo(ticket.getTitulo().trim());
+        ticket.setDescripcion(ticket.getDescripcion().trim());
     }
 
     private void registrarHistorial(Ticket ticket, EstadoTicket estadoAnterior,
                                     EstadoTicket estadoNuevo, Usuario usuarioEjecutor,
                                     String comentario) {
+        registrarHistorial(ticket, estadoAnterior, estadoNuevo, usuarioEjecutor, comentario, null);
+    }
+
+    private void registrarHistorial(Ticket ticket, EstadoTicket estadoAnterior,
+                                    EstadoTicket estadoNuevo, Usuario usuarioEjecutor,
+                                    String comentario, Usuario tecnicoAsignado) {
         TicketHistorial historial = new TicketHistorial(
                 usuarioEjecutor, estadoAnterior, estadoNuevo, comentario);
         historial.setTicket(ticket);
+        historial.setTecnicoAsignado(tecnicoAsignado);
         ticketHistorialRepository.save(historial);
     }
 

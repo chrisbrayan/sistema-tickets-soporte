@@ -32,8 +32,13 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/tickets",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "tickets"
+          ]
         },
         "description": "Crea un ticket con un usuario y una categoría existentes."
       },
@@ -60,8 +65,13 @@
         "method": "GET",
         "url": {
           "raw": "{{baseUrl}}/api/tickets",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "tickets"
+          ]
         },
         "description": "Devuelve todos los tickets almacenados en memoria."
       },
@@ -85,8 +95,14 @@
         "method": "GET",
         "url": {
           "raw": "{{baseUrl}}/api/tickets/{{ticketId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets", "{{ticketId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "tickets",
+            "{{ticketId}}"
+          ]
         },
         "description": "Obtiene el ticket creado por la petición anterior."
       },
@@ -120,8 +136,14 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/tickets/{{ticketId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets", "{{ticketId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "tickets",
+            "{{ticketId}}"
+          ]
         },
         "description": "Actualiza los datos y asigna el técnico del catálogo con ID 2."
       },
@@ -145,8 +167,14 @@
         "method": "DELETE",
         "url": {
           "raw": "{{baseUrl}}/api/tickets/{{ticketId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets", "{{ticketId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "tickets",
+            "{{ticketId}}"
+          ]
         },
         "description": "Elimina el ticket creado durante el flujo."
       },
@@ -180,8 +208,13 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/tickets",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "tickets"
+          ]
         },
         "description": "Debe responder 400 porque el título está vacío."
       },
@@ -205,8 +238,14 @@
         "method": "GET",
         "url": {
           "raw": "{{baseUrl}}/api/tickets/999999",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets", "999999"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "tickets",
+            "999999"
+          ]
         },
         "description": "Debe responder 404 porque el ticket no existe."
       },

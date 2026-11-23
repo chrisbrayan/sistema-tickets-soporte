@@ -8,7 +8,6 @@ public class CambiarEstadoRequest {
     @NotNull(message = "El estado es obligatorio")
     private EstadoTicket estado;
 
-    @NotNull(message = "El usuario ejecutor es obligatorio")
     private Long usuarioEjecutorId;
 
     private String comentario;

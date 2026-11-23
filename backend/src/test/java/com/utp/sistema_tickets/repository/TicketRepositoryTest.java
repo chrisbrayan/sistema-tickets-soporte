@@ -46,7 +46,8 @@ class TicketRepositoryTest {
     void setUp() {
         ticketRepository.deleteAll();
         usuarioRepository.deleteAll();
-        categoriaRepository.deleteAll();
+        categoriaRepository.deleteAllInBatch();
+        entityManager.flush();
 
         usuario = usuarioRepository.save(new Usuario(
                 null, "Ana Usuario", "ana.repository@example.com",
@@ -127,7 +128,7 @@ class TicketRepositoryTest {
     }
 
     @Test
-    void buscarAsignadosNoCerradosExcluyeTicketsCerrados() {
+    void buscarAsignadosIncluyeTicketsCerrados() {
         Ticket enProgreso = ticket("Atender incidencia");
         enProgreso.setTecnicoAsignado(tecnico);
         enProgreso.setEstado(EstadoTicket.EN_PROGRESO);
@@ -139,9 +140,9 @@ class TicketRepositoryTest {
         ticketRepository.save(cerrado);
         ticketRepository.flush();
 
-        assertThat(ticketRepository.buscarAsignadosNoCerrados(tecnico.getId()))
+        assertThat(ticketRepository.buscarAsignados(tecnico.getId()))
                 .extracting(Ticket::getTitulo)
-                .containsExactly("Atender incidencia");
+                .containsExactlyInAnyOrder("Atender incidencia", "Incidencia cerrada");
     }
 
     @Test

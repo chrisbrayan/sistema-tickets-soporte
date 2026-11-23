@@ -1,408 +1,332 @@
-## **Autores**
-
-* **Huamani Huarca Jose Alexander** — `Acund01`
-* **Rodriguez Huillca Juan Ronaldo** — `aldersoneliot112233-bot`
-* **Christian Brayan Choque Avalos** — `Chrisbrayan`
-* **Fidel Quispesivana Huamani** — `fidelQhv`
-
----------------------------------------------------------------------------------------------------------------------------------------
-
 # Sistema de gestión de tickets de soporte técnico
 
-API REST inicial para registrar y gestionar solicitudes de soporte técnico de empleados o clientes.
+## APF3 — Frontend Angular integrado con Spring Boot
 
-Este proyecto comenzó como el primer avance APF1. En APF2 se implementó la evolución de la API hacia una solución persistente y segura.
+En este avance se implementó una interfaz Angular conectada a la API REST del backend Spring Boot. El sistema permite gestionar tickets desde una interfaz web, con autenticación JWT, navegación protegida, validaciones, control por roles y persistencia en MySQL.
 
-## Resumen de APF2
+## Funcionalidades implementadas
 
-- **Migración a base de datos relacional:** el almacenamiento en memoria fue reemplazado por persistencia con JPA/Hibernate y MySQL.
-- **CRUD persistente:** los recursos principales guardan, consultan, actualizan y eliminan información en la base de datos.
-- **Consulta JPQL útil:** se incorporaron consultas JPQL para obtener información operativa de los tickets.
-- **Operación transaccional:** las modificaciones de tickets y el registro de historial se coordinan mediante transacciones.
-- **Spring Security:** se configuraron permisos diferenciados para `USUARIO`, `TECNICO` y `ADMIN`.
-- **Autenticación JWT:** se implementó login, generación de tokens, validación de tokens y rutas protegidas.
-- **Tests actualizados:** se adaptaron y ampliaron las pruebas de persistencia, servicio, transacciones, seguridad y MockMvc.
-- **Postman actualizado:** la colección incluye login, uso del token Bearer, rutas protegidas y respuestas `401`/`403`.
+- **Proyecto Angular organizado:** el frontend se separa en `core`, `features` y `shared`. `core` contiene autenticación, guards, interceptores, layout y servicios; `features` contiene las pantallas funcionales; y `shared` contiene modelos TypeScript y componentes visuales reutilizables.
+- **Rutas principales:** se implementaron las pantallas de login, registro, dashboard, listado de tickets, tickets asignados, creación, detalle, edición, usuarios y categorías. Las rutas protegidas requieren una sesión válida y las rutas administrativas requieren el rol `ADMIN`.
+- **Formularios con validación:** se usan formularios reactivos para login, registro, tickets, usuarios y categorías. Se validan campos obligatorios, email, longitudes mínimas y máximas, contraseña, prioridad, categoría y roles permitidos antes de enviar información al backend.
+- **Mensajes de validación visibles:** los errores aparecen debajo del campo correspondiente después de intentar enviar el formulario. Además, los botones se deshabilitan mientras el formulario es inválido o una operación se encuentra en proceso.
+- **Consumo real de API REST:** los servicios Angular utilizan `HttpClient` para conectarse a Spring Boot. Se consumen endpoints reales de autenticación, tickets, historial, categorías, usuarios, filtros, resumen y operaciones de asignación, estado y cierre; no se utilizan listas simuladas para mostrar los tickets.
+- **CRUD visible desde frontend:** un usuario puede crear y consultar sus tickets; el administrador puede listar, filtrar, editar y eliminar tickets; y el técnico puede consultar sus tickets asignados, cambiar estados, agregar observaciones y cerrar la atención cuando corresponde.
+- **Manejo de errores HTTP:** los interceptores y el servicio de notificaciones convierten las respuestas del backend en mensajes comprensibles. Se contemplan datos inválidos (`400`), sesión ausente o expirada (`401`), permisos insuficientes (`403`), recurso inexistente (`404`), conflictos (`409`) y errores de conexión.
+- **Autenticación desde Angular:** el login consume `POST /api/auth/login`, guarda el JWT y la información básica del usuario en `sessionStorage`, y permite cerrar sesión limpiando esos datos. El interceptor agrega automáticamente `Authorization: Bearer <token>` a las peticiones protegidas.
+- **Autorización por rol:** la interfaz muestra u oculta acciones según `USUARIO`, `TECNICO` y `ADMIN`, pero la autorización definitiva permanece en Spring Security. Por ejemplo, solo el administrador puede administrar usuarios, categorías, asignar técnicos, editar y eliminar tickets.
+- **Estados de experiencia de usuario:** las pantallas muestran indicadores de carga, mensajes de operación exitosa, estados vacíos y errores. Después de una respuesta HTTP se actualizan los datos mostrados, como el listado, el detalle, las métricas y el historial.
+- **Evidencia end-to-end:** el flujo completo puede comprobarse creando o modificando un ticket desde Angular, observando la petición en Network, verificando la respuesta de Spring Boot y confirmando el cambio persistido en MySQL.
+
+## Documentación detallada del APF3
+
+### 1. Proyecto Angular organizado
+
+El frontend se estructuró por responsabilidades para evitar que toda la lógica se concentre en un solo componente:
+
+- `core/`: funcionalidades transversales de la aplicación.
+  - `auth/`: sesión, login, logout, usuario autenticado y JWT.
+  - `guards/`: protección de rutas por autenticación y rol.
+  - `http/`: interceptores, transformación y notificación de errores.
+  - `layout/`: menú lateral, encabezado, navegación y diseño responsive.
+  - `services/`: comunicación con los recursos del backend.
+- `features/`: funcionalidades visibles del sistema.
+  - `auth/`: login y registro.
+  - `dashboard/`: métricas, resumen y actividad reciente.
+  - `tickets/`: listado, filtros, creación, edición y detalle.
+  - `admin/`: gestión de usuarios y categorías.
+- `shared/`: elementos reutilizables.
+  - `models/`: interfaces TypeScript para los datos de la API.
+  - `ui/`: avatares, iconos, diálogos, toasts y estilos de estados.
+
+Archivos principales para revisar:
+
+```text
+frontend/src/app/core/auth/auth.service.ts
+frontend/src/app/core/services/ticket.service.ts
+frontend/src/app/core/layout/app-shell.component.ts
+frontend/src/app/features/tickets/ticket-list.component.ts
+frontend/src/app/features/tickets/ticket-form.component.ts
+frontend/src/app/features/tickets/ticket-detail.component.ts
+frontend/src/app/shared/models/ticket.model.ts
+```
+
+Los componentes se ocupan de la interacción y la presentación; los servicios ejecutan las peticiones HTTP; los modelos describen el contrato de datos; y los guards/interceptores resuelven necesidades transversales.
+
+### 2. Rutas principales y navegación
+
+Las rutas se configuran en `frontend/src/app/app.routes.ts`.
+
+| Ruta                     | Funcionalidad                             | Acceso                             |
+| ------------------------ | ----------------------------------------- | ---------------------------------- |
+| `/login`                 | Autenticación                             | Público                            |
+| `/registro`              | Registro de un usuario con rol `USUARIO`  | Público                            |
+| `/dashboard`             | Resumen de tickets y actividad            | Usuario autenticado                |
+| `/tickets`               | Listado y filtros                         | Usuario autenticado                |
+| `/tickets/mis-asignados` | Tickets asignados al técnico              | `TECNICO`                          |
+| `/tickets/nuevo`         | Creación de ticket                        | `USUARIO`, `ADMIN`                 |
+| `/tickets/:id`           | Detalle, historial y acciones             | Usuario autenticado según permisos |
+| `/tickets/:id/editar`    | Edición de ticket                         | `ADMIN`                            |
+| `/admin/usuarios`        | Alta y listado de usuarios                | `ADMIN`                            |
+| `/admin/categorias`      | Alta, edición y eliminación de categorías | `ADMIN`                            |
+
+El `authGuard` comprueba que exista una sesión válida. Si no existe, redirige a `/login` y conserva la URL solicitada. El `roleGuard` verifica que el rol del usuario esté incluido en los roles permitidos por la ruta; de lo contrario, redirige al dashboard.
+
+Archivos relacionados:
+
+```text
+frontend/src/app/app.routes.ts
+frontend/src/app/core/guards/auth.guard.ts
+frontend/src/app/core/guards/role.guard.ts
+frontend/src/app/core/layout/app-shell.component.ts
+```
+
+Además de proteger las rutas, el layout adapta el menú: un usuario observa sus tickets, un técnico observa sus tickets asignados y un administrador observa las opciones de administración.
+
+### 3. Formularios con validación
+
+Se utiliza `ReactiveFormsModule` para que cada pantalla defina explícitamente sus controles y validadores.
+
+#### Login
+
+`frontend/src/app/features/auth/login.component.ts` valida:
+
+- Correo obligatorio.
+- Formato válido de correo.
+- Contraseña obligatoria.
+
+#### Registro
+
+`frontend/src/app/features/auth/register.component.ts` valida nombre, correo, contraseña y confirmación de contraseña. El registro público no permite escoger un rol elevado: el backend crea el usuario con rol `USUARIO`.
+
+#### Tickets
+
+`frontend/src/app/features/tickets/ticket-form.component.ts` valida:
+
+- Título obligatorio, con longitud mínima y máxima.
+- Descripción obligatoria, con longitud mínima y máxima.
+- Prioridad válida: `BAJA`, `MEDIA`, `ALTA` o `URGENTE`.
+- Categoría obligatoria y existente en el catálogo.
+- Usuario solicitante válido.
+
+#### Usuarios y categorías
+
+Los componentes administrativos validan nombre, correo, contraseña, rol, nombre de categoría y descripción antes de enviar la petición.
+
+Los mensajes se muestran cerca del campo con error después de pulsar el botón de envío. Las operaciones muestran estados como `Guardando…`, `Cargando…` o `Eliminando…`, y los botones se deshabilitan durante la petición para evitar duplicados.
+
+### 4. Consumo real de API REST
+
+La URL base se centraliza en `frontend/src/environments/environment.ts`:
+
+```ts
+apiUrl: "http://localhost:8080/api";
+```
+
+Los servicios Angular consumen la API mediante `HttpClient`.
+
+#### `TicketService`
+
+Archivo: `frontend/src/app/core/services/ticket.service.ts`
+
+| Método Angular       | Petición HTTP                         | Uso                                               |
+| -------------------- | ------------------------------------- | ------------------------------------------------- |
+| `listar()`           | `GET /api/tickets`                    | Listado según rol                                 |
+| `obtener(id)`        | `GET /api/tickets/{id}`               | Detalle                                           |
+| `historial(id)`      | `GET /api/tickets/{id}/historial`     | Historial del ticket                              |
+| `crear()`            | `POST /api/tickets`                   | Crear ticket                                      |
+| `actualizar()`       | `PUT /api/tickets/{id}`               | Editar ticket                                     |
+| `eliminar()`         | `DELETE /api/tickets/{id}`            | Eliminar ticket                                   |
+| `asignarTecnico()`   | `PATCH /api/tickets/{id}/asignacion`  | Asignación administrativa                         |
+| `cambiarEstado()`    | `PATCH /api/tickets/{id}/estado`      | Cambio de estado                                  |
+| `cerrar()`           | `POST /api/tickets/{id}/cerrar`       | Cierre de atención                                |
+| `filtrar()`          | `GET /api/tickets/filtrar`            | Filtros por estado, prioridad, categoría y fechas |
+| `misAsignados()`     | `GET /api/tickets/mis-asignados`      | Bandeja del técnico                               |
+| `resumenPorEstado()` | `GET /api/tickets/resumen-por-estado` | Métricas del dashboard                            |
+
+También se utilizan:
+
+- `AuthService` para login, logout y registro.
+- `CategoriaService` para cargar y administrar categorías.
+- `UsuarioService` para listar técnicos y administrar usuarios.
+
+### 5. CRUD visible desde el frontend
+
+#### Usuario
+
+- Crea un ticket desde `/tickets/nuevo`.
+- Consulta sus propios tickets en `/tickets`.
+- Abre el detalle y revisa estado, categoría, técnico e historial.
+- Puede cerrar su propia solicitud cuando ya no necesita atención.
+
+#### Técnico
+
+- Accede a `/tickets/mis-asignados`.
+- Consulta el detalle de un ticket asignado.
+- Cambia el estado del ticket.
+- Registra observaciones de la atención.
+- Consulta el historial.
+- Cierra el ticket cuando termina el trabajo.
+
+#### Administrador
+
+- Consulta todos los tickets.
+- Filtra por estado, prioridad, categoría y fechas.
+- Asigna técnicos.
+- Edita y elimina tickets.
+- Administra usuarios y categorías.
+- Consulta estadísticas y el historial completo.
+
+La interfaz oculta o deshabilita acciones que el rol no necesita, pero la restricción final se aplica en `SecurityConfig` y en `TicketController` del backend.
+
+### 6. Manejo de errores HTTP
+
+El frontend registra `authInterceptor` y `errorInterceptor` en `frontend/src/app/app.config.ts`.
+
+`error.interceptor.ts` recibe los errores HTTP y los envía a `ErrorNotificationService`. Este servicio traduce cada código a un mensaje comprensible y `error-toast.component.ts` lo presenta visualmente.
+
+| Código | Tratamiento en la interfaz                         | Prueba sugerida                                             |
+| -----: | -------------------------------------------------- | ----------------------------------------------------------- |
+|  `400` | Muestra datos inválidos y el detalle de validación | Crear ticket con título vacío                               |
+|  `401` | Limpia la sesión y redirige al login               | Eliminar el token y consultar una ruta protegida            |
+|  `403` | Muestra acceso denegado                            | Entrar a usuarios como `USUARIO`                            |
+|  `404` | Muestra recurso no encontrado                      | Abrir un ticket inexistente                                 |
+|  `409` | Muestra mensaje de conflicto                       | Ejecutar una operación que el backend defina como conflicto |
+|    `0` | Muestra error de conexión                          | Detener el backend y recargar la página                     |
+
+El backend utiliza `ApiExceptionHandler` para devolver respuestas con una estructura común: `timestamp`, `status`, `error`, `message` y `path`.
+
+### 7. Autenticación desde Angular y JWT
+
+El flujo de autenticación es el siguiente:
+
+1. `LoginComponent` valida el formulario.
+2. `AuthService` envía `POST /api/auth/login`.
+3. Spring Boot autentica el email y contraseña mediante `AuthenticationManager`.
+4. El backend genera un JWT firmado con sujeto, rol y expiración.
+5. Angular guarda el token y los datos de sesión en `sessionStorage`.
+6. `authInterceptor` agrega `Authorization: Bearer <token>` a las peticiones protegidas.
+7. `JwtAuthenticationFilter` valida la firma y expiración en el backend.
+8. `SecurityConfig` autoriza la operación según el rol.
+
+Archivos principales:
+
+```text
+frontend/src/app/features/auth/login.component.ts
+frontend/src/app/core/auth/auth.service.ts
+frontend/src/app/core/http/auth.interceptor.ts
+backend/src/main/java/com/utp/sistema_tickets/controller/AuthController.java
+backend/src/main/java/com/utp/sistema_tickets/security/JwtService.java
+backend/src/main/java/com/utp/sistema_tickets/security/JwtAuthenticationFilter.java
+backend/src/main/java/com/utp/sistema_tickets/security/SecurityConfig.java
+```
+
+Un `401` indica que falta autenticación o que el token no es válido. Un `403` indica que el token es válido, pero el rol no tiene permiso para ejecutar la operación.
+
+### 8. Evidencia end-to-end
+
+1. Iniciar MySQL y el backend Spring Boot.
+2. Iniciar Angular y abrir `http://localhost:4200`.
+3. Iniciar sesión como `USUARIO`.
+4. Crear un ticket desde la pantalla web.
+5. Mostrar en Network el `POST /api/tickets` con respuesta `201 Created`.
+6. Confirmar que el ticket aparece en el listado y abrir su detalle.
+7. Consultar MySQL y mostrar la fila persistida en `tickets`.
+8. Iniciar sesión como `TECNICO` y cambiar el estado agregando una observación.
+9. Mostrar el `PATCH /api/tickets/{id}/estado` y el nuevo evento en el historial.
+10. Consultar `ticket_historial` en MySQL.
+11. Iniciar sesión como `ADMIN` y demostrar asignación, edición, eliminación o gestión de usuarios/categorías.
+
+Esta secuencia evidencia el recorrido:
+
+```text
+Angular → HttpClient → JWT → Spring Boot → Service → JPA → MySQL
+      ← respuesta HTTP ← DTO ← Controller ←
+```
+
+## Arquitectura del frontend
+
+```text
+frontend/src/app/
+├── core/
+│   ├── auth/       # Sesión y JWT
+│   ├── guards/     # Autenticación y roles
+│   ├── http/       # Interceptores y errores
+│   ├── layout/     # Shell y navegación
+│   └── services/   # Consumo de la API
+├── features/
+│   ├── auth/       # Login y registro
+│   ├── dashboard/  # Métricas y actividad
+│   ├── tickets/    # CRUD y detalle
+│   └── admin/      # Usuarios y categorías
+└── shared/
+    ├── models/     # Interfaces TypeScript
+    └── ui/         # Componentes visuales reutilizables
+```
+
+## Rutas principales
+
+| Ruta                     | Funcionalidad                 | Acceso             |
+| ------------------------ | ----------------------------- | ------------------ |
+| `/login`                 | Iniciar sesión                | Público            |
+| `/registro`              | Registrar usuario             | Público            |
+| `/dashboard`             | Resumen de soporte            | Autenticado        |
+| `/tickets`               | Listar y filtrar tickets      | Autenticado        |
+| `/tickets/nuevo`         | Crear ticket                  | `USUARIO`, `ADMIN` |
+| `/tickets/:id`           | Detalle, historial y acciones | Según permisos     |
+| `/tickets/:id/editar`    | Editar ticket                 | `ADMIN`            |
+| `/tickets/mis-asignados` | Tickets asignados             | `TECNICO`          |
+| `/admin/usuarios`        | Gestionar usuarios            | `ADMIN`            |
+| `/admin/categorias`      | Gestionar categorías          | `ADMIN`            |
 
 ## Requisitos
 
 - Java 21.
-- Maven Wrapper incluido en el proyecto (`mvnw.cmd`). No es necesario instalar Maven globalmente.
-- MySQL 8 o compatible instalado y ejecutándose localmente en el puerto `3306`.
-- Postman, opcional, para ejecutar la colección incluida.
+- MySQL ejecutándose en `localhost:3306`.
+- Node.js y npm.
+- Maven Wrapper incluido en `backend/`.
 
-Verifica Java con:
+## Ejecución
 
-```powershell
-java -version
-```
+### Backend
 
-## Ejecutar la aplicación
-
-Desde la raíz del proyecto:
+Desde una terminal:
 
 ```powershell
+cd backend
 .\mvnw.cmd spring-boot:run
 ```
 
-La API queda disponible en:
+La API estará disponible en `http://localhost:8080`.
 
-```text
-http://localhost:8080
-```
+### Frontend
 
-La documentación OpenAPI, si se desea consultar, está disponible en:
-
-```text
-http://localhost:8080/swagger-ui.html
-```
-
-## Preparar MySQL para APF2
-
-La aplicación utiliza la siguiente configuración de conexión predeterminada:
-
-```text
-jdbc:mysql://localhost:3306/sistema_tickets
-```
-
-Para ejecutar el proyecto, MySQL debe estar disponible en localhost:3306 y la base de datos sistema_tickets debe existir o poder crearse automáticamente.
-
-### Valores configurables
-
-Los valores predeterminados de conexión son:
-
-| Variable            | Valor para desarrollo        | Propósito                                      |
-| ------------------- | ---------------------------- | ---------------------------------------------- |
-| `MYSQL_HOST`        | `localhost`                  | Host de MySQL                                  |
-| `MYSQL_DATABASE`    | `sistema_tickets`            | Base de datos                                  |
-| `MYSQL_USERNAME`    | `root`                       | Usuario de conexión                            |
-| `MYSQL_PASSWORD`    | `root_password_dev`          | Contraseña de conexión                         |
-| `JWT_SECRET`        | clave de desarrollo incluida | Firma de tokens; usar una propia en producción |
-| `JWT_EXPIRATION_MS` | `3600000`                    | Expiración del JWT en milisegundos             |
-
-La clave `JWT_SECRET` debe tener al menos 32 bytes. En PowerShell se pueden sobrescribir temporalmente antes de iniciar la aplicación:
+Desde otra terminal:
 
 ```powershell
-$env:MYSQL_USERNAME="root"
-$env:MYSQL_PASSWORD="root_password_dev"
-$env:JWT_SECRET="una-clave-local-de-al-menos-32-caracteres"
-$env:JWT_EXPIRATION_MS="3600000"
+cd frontend
+npm install
+npm start
 ```
 
-### MySQL local en Windows
+La aplicación estará disponible en `http://localhost:4200` y utilizará la API configurada en:
 
-Crear una base llamada `sistema_tickets`, iniciar el servicio MySQL local en el puerto `3306` y ejecutar:
-
-```powershell
-$env:MYSQL_USERNAME="root"
-$env:MYSQL_PASSWORD="tu_clave"
-.\mvnw.cmd spring-boot:run
+```text
+frontend/src/environments/environment.ts
 ```
 
-La aplicación conserva `localhost:3306`; solo se cambian las credenciales mediante `MYSQL_USERNAME` y `MYSQL_PASSWORD` si son diferentes.
+## Pruebas
 
-## Ejecutar las pruebas
+Compilar el frontend:
 
 ```powershell
+cd frontend
+npm run build
+```
+
+Ejecutar las pruebas del backend:
+
+```powershell
+cd backend
 .\mvnw.cmd test
 ```
-
-La suite incluye pruebas del modelo, repositorios JPA, servicio, contrato HTTP con MockMvc, transacciones y seguridad. El perfil de prueba usa H2 aislado para evitar que las pruebas dependan de un MySQL externo.
-
-La verificación de APF2 cubre:
-
-- Persistencia de tickets, relaciones con usuario/categoría, consultas JPQL e IDs inexistentes.
-- Creación, actualización, validación de tickets cerrados, roles de técnicos y rollback transaccional.
-- Login JWT, credenciales inválidas, token ausente, roles insuficientes y roles permitidos.
-- Contratos HTTP para login, listado protegido, aislamiento de tickets y rutas administrativas.
-
-## Caso TDD: RED → GREEN → REFACTOR
-
-Caso elegido: crear un ticket nuevo debe asignarle un ID y dejarlo en estado `ABIERTO`.
-
-1. **RED**: se escribió la prueba `crearAsignaIdYValoresIniciales` en `TicketServiceTest`, esperando que un ticket nuevo tuviera un ID y estado `ABIERTO`.
-2. **GREEN**: se implementó el servicio y el repositorio persistente para satisfacer el comportamiento esperado.
-3. **REFACTOR**: se separaron las responsabilidades entre servicio, repositorios JPA, validaciones, excepciones e historial transaccional. El comportamiento se mantuvo y la suite continúa pasando.
-
-La prueba verifica el resultado observable, no la implementación interna, por lo que sigue siendo válida con el repositorio JPA actual.
-
-## Usuarios de desarrollo y seguridad
-
-La Fase 5 persiste los usuarios en la tabla `usuarios`. La columna `password_hash` contiene hashes BCrypt; nunca se almacena la contraseña original. `JpaUserDetailsService` busca por email y convierte el rol en una autoridad Spring Security (`ROLE_USUARIO`, `ROLE_TECNICO` o `ROLE_ADMIN`).
-
-Al iniciar la aplicación se crean, si no existen, estos usuarios de desarrollo:
-
-| Email                      | Contraseña de desarrollo | Rol       |
-| -------------------------- | ------------------------ | --------- |
-| `ana.usuario@example.com`  | `ana1234`                | `USUARIO` |
-| `luis.tecnico@example.com` | `tecnico1234`            | `TECNICO` |
-| `maria.admin@example.com`  | `admin1234`              | `ADMIN`   |
-
-Estas credenciales son únicamente para desarrollo local.
-
-### Registro, login y uso del JWT
-
-El registro público crea únicamente usuarios con rol `USUARIO`. El cliente no puede elegir ni elevar su rol:
-
-```http
-POST http://localhost:8080/api/auth/registro
-Content-Type: application/json
-```
-
-```json
-{
-  "nombre": "Carlos Soporte",
-  "email": "carlos@empresa.test",
-  "password": "carlos1234"
-}
-```
-
-La respuesta es `201 Created` y devuelve el usuario sin `passwordHash`. Para crear usuarios con cualquier rol, un administrador debe usar `POST /api/usuarios` con un JWT de `ADMIN`:
-
-```json
-{
-  "nombre": "Nuevo técnico",
-  "email": "tecnico2@empresa.test",
-  "password": "tecnico1234",
-  "rol": "TECNICO"
-}
-```
-
-Esta operación responde `201 Created`; sin token responde `401` y con un rol distinto de `ADMIN` responde `403`. Los correos duplicados responden `400`.
-
-Solicita un token con:
-
-```http
-POST http://localhost:8080/api/auth/login
-Content-Type: application/json
-```
-
-```json
-{
-  "email": "ana.usuario@example.com",
-  "password": "ana1234"
-}
-```
-
-La respuesta `200 OK` contiene `token`, `tokenType`, `subject`, `role` y `expiresAt`. Para acceder a una ruta protegida se envía:
-
-```http
-Authorization: Bearer <token>
-```
-
-Respuestas de seguridad:
-
-- `401 Unauthorized`: credenciales inválidas, token ausente, expirado o con firma inválida.
-- `403 Forbidden`: token válido, pero el rol no tiene permiso para la operación.
-
-Rutas públicas: `/api/auth/login`, `/api/auth/registro`, `/swagger-ui/**`, `/swagger-ui.html` y `/v3/api-docs/**`. Las operaciones de tickets requieren JWT; eliminar tickets requiere `ADMIN` y las operaciones de asignación, cambio de estado y cierre requieren `TECNICO` o `ADMIN`.
-
-### Reglas de autorización por rol
-
-- `USUARIO`: puede crear tickets y consultar únicamente los tickets donde figura como solicitante.
-- `TECNICO`: puede consultar tickets, utilizar las búsquedas operativas, asignar técnicos, cambiar estados y cerrar tickets.
-- `ADMIN`: tiene las capacidades del técnico, puede eliminar tickets y es el único rol autorizado para administrar `/api/usuarios/**` y `/api/categorias/**`.
-- Un usuario que intenta consultar el ticket de otro recibe `404`, evitando revelar si el recurso existe.
-- Las respuestas de seguridad conservan el formato común de error con `timestamp`, `status`, `error`, `message` y `path`.
-
-## Colección de Postman
-
-La colección se encuentra en:
-
-```text
-postman/Sistema-Tickets-APF2.postman_collection.json
-```
-
-Para usarla:
-
-1. Inicia la aplicación.
-2. Abre Postman y selecciona **Import**.
-3. Importa el archivo JSON de la colección.
-4. Ejecuta los tres requests de **Autenticación** para guardar los tokens de usuario, técnico y administrador.
-5. Ejecuta **Registro público - USUARIO** para comprobar que el rol siempre es `USUARIO`.
-6. Ejecuta **Crear usuario - ADMIN** para comprobar la creación administrativa de un técnico.
-7. Ejecuta **Crear ticket - USUARIO**; la respuesta `201` guarda automáticamente el ID en `ticketId`.
-8. Ejecuta el resto de peticiones respetando el orden de las carpetas.
-
-Variables de colección:
-
-| Variable       | Valor inicial           | Uso                                    |
-| -------------- | ----------------------- | -------------------------------------- |
-| `baseUrl`      | `http://localhost:8080` | URL base de la API                     |
-| `token`        | vacío                   | Token activo de trabajo                |
-| `usuarioToken` | vacío                   | JWT del usuario Ana                    |
-| `tecnicoToken` | vacío                   | JWT del técnico Luis                   |
-| `adminToken`   | vacío                   | JWT de la administradora María         |
-| `ticketId`     | vacío                   | ID guardado después de crear un ticket |
-
-La colección incluye:
-
-- Login de usuario, técnico y administrador (`POST`, `200`) con almacenamiento automático del JWT.
-- Registro público (`POST`, `201`) que siempre crea un usuario con rol `USUARIO`.
-- Alta administrativa (`POST`, `201`) de usuarios con cualquier rol usando `adminToken`.
-- Rechazo de alta administrativa por un usuario normal (`POST`, `403`).
-- Login inválido (`POST`, `401`).
-- Crear ticket con usuario (`POST`, `201`).
-- Listar y consultar tickets con token (`GET`, `200`).
-- Modificar y asignar técnico (`PUT/PATCH`, `200`).
-- Eliminar ticket con administrador (`DELETE`, `204`).
-- Ruta protegida sin token (`GET`, `401`).
-- Usuario sin permisos administrativos (`GET`, `403`).
-- Validación con título vacío (`POST`, `400`).
-- Ticket inexistente (`GET`, `404`).
-
-## Ejemplo de creación
-
-```http
-POST http://localhost:8080/api/tickets
-Content-Type: application/json
-```
-
-```json
-{
-  "titulo": "No puedo acceder al correo",
-  "descripcion": "El sistema rechaza mis credenciales desde esta mañana.",
-  "prioridad": "MEDIA",
-  "usuarioId": 1,
-  "categoriaId": 1
-}
-```
-
-Respuesta esperada: `201 Created`.
-
-```json
-{
-  "id": 1,
-  "titulo": "No puedo acceder al correo",
-  "descripcion": "El sistema rechaza mis credenciales desde esta mañana.",
-  "prioridad": "MEDIA",
-  "estado": "ABIERTO",
-  "usuarioId": 1,
-  "categoriaId": 1,
-  "tecnicoId": null
-}
-```
-
-## Endpoints
-
-| Método   | URI                                                | Éxito | Descripción                                       |
-| -------- | -------------------------------------------------- | ----: | ------------------------------------------------- |
-| `POST`   | `/api/tickets`                                     | `201` | Crear ticket                                      |
-| `GET`    | `/api/tickets`                                     | `200` | Listar tickets                                    |
-| `GET`    | `/api/tickets/{id}`                                | `200` | Obtener ticket                                    |
-| `PUT`    | `/api/tickets/{id}`                                | `200` | Modificar ticket                                  |
-| `PATCH`  | `/api/tickets/{id}/asignacion`                     | `200` | Asignar técnico y registrar historial             |
-| `PATCH`  | `/api/tickets/{id}/estado`                         | `200` | Cambiar estado y registrar transición             |
-| `POST`   | `/api/tickets/{id}/cerrar`                         | `200` | Cerrar ticket y registrar cierre                  |
-| `DELETE` | `/api/tickets/{id}`                                | `204` | Eliminar ticket                                   |
-| `GET`    | `/api/tickets/search?estado=ABIERTO&categoriaId=1` | `200` | Buscar por estado y categoría mediante JPQL       |
-| `GET`    | `/api/tickets/mis-asignados?tecnicoId=2`           | `200` | Tickets asignados no cerrados mediante JPQL       |
-| `GET`    | `/api/tickets/filtrar`                             | `200` | Filtrar por estado, prioridad, categoría y fechas |
-| `GET`    | `/api/tickets/resumen-por-estado`                  | `200` | Resumen agrupado por estado mediante JPQL         |
-| `POST`   | `/api/auth/login`                                  | `200` | Autenticar y obtener JWT                          |
-| `POST`   | `/api/auth/registro`                               | `201` | Registro público; siempre crea rol `USUARIO`      |
-| `POST`   | `/api/usuarios`                                    | `201` | Crear usuario con cualquier rol; solo `ADMIN`     |
-
-Errores principales:
-
-- `400 Bad Request`: datos inválidos, campos obligatorios ausentes o JSON mal formado.
-- `404 Not Found`: el ticket solicitado no existe.
-
-Ejemplo de error `404`:
-
-```json
-{
-  "timestamp": "2026-09-07T12:00:00",
-  "status": 404,
-  "error": "Not Found",
-  "message": "Ticket no encontrado: 999999",
-  "path": "/api/tickets/999999"
-}
-```
-
-## Consultas JPQL de APF2
-
-El repositorio persistente contiene consultas JPQL para las bandejas y reportes principales del soporte:
-
-- Tickets por estado y categoría.
-- Tickets asignados a un técnico que todavía no están cerrados.
-- Filtros combinados por estado, prioridad, categoría y rango de fechas.
-- Resumen agrupado de tickets por estado.
-
-Estas consultas se ejecutan en la base de datos mediante `TicketRepository`; no se recupera toda la colección para filtrarla en Java.
-
-## Operaciones transaccionales de APF2
-
-`TicketService` coordina las actualizaciones del ticket y sus eventos en `TicketHistorial` mediante `@Transactional`:
-
-- Crear ticket y registrar el evento inicial.
-- Asignar o cambiar el técnico y registrar la asignación.
-- Cambiar el estado y registrar la transición.
-- Cerrar el ticket y registrar el cierre.
-
-Si falla el guardado del historial, la transacción se revierte y el cambio del ticket no queda persistido.
-
-## Catálogos iniciales del APF1
-
-Para crear o modificar tickets se pueden usar estas referencias:
-
-### Usuarios
-
-|  ID | Rol       | Nombre               |
-| --: | --------- | -------------------- |
-| `1` | `USUARIO` | Ana Usuario          |
-| `2` | `TECNICO` | Luis Técnico         |
-| `3` | `ADMIN`   | María Administradora |
-
-### Categorías
-
-|  ID | Nombre   |
-| --: | -------- |
-| `1` | Acceso   |
-| `2` | Hardware |
-| `3` | Software |
-
-## Estructura del proyecto
-
-```text
-src/
-├── main/java/com/utp/sistema_tickets/
-│   ├── controller/
-│   │   ├── ApiExceptionHandler.java
-│   │   ├── AuthController.java
-│   │   └── TicketController.java
-│   ├── dto/
-│   │   ├── ApiError.java
-│   │   ├── TicketRequest.java
-│   │   └── TicketResponse.java
-│   ├── exception/
-│   ├── model/
-│   ├── repository/
-│   ├── security/
-│   ├── service/
-│   └── config/
-└── test/java/com/utp/sistema_tickets/
-    ├── controller/
-    ├── model/
-    ├── repository/
-    └── service/
-postman/
-├── Sistema-Tickets-APF1.postman_collection.json
-└── Sistema-Tickets-APF2.postman_collection.json
-```
-
-## Arquitectura
-
-```text
-HTTP → TicketController → TicketService → TicketRepository
-                                      ├→ UsuarioRepository
-                                      └→ CategoriaRepository
-```
-
-- `Controller`: recibe solicitudes HTTP y devuelve respuestas HTTP.
-- `Service`: aplica reglas de negocio y valida referencias.
-- `Repository`: abstrae el almacenamiento persistente con Spring Data JPA.
-- `DTO`: separa el contrato HTTP del modelo de dominio.
-- `ApiExceptionHandler`: unifica las respuestas de error.
-- `Security`: configura BCrypt y carga las identidades persistidas mediante `UserDetailsService`.
-- `Config`: crea datos iniciales de desarrollo de forma idempotente.

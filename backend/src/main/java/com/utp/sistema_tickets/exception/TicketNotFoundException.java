@@ -1,4 +1,4 @@
-package com.utp.sistematickets.exception;
+package com.utp.sistema_tickets.exception;
 
 public class TicketNotFoundException extends RuntimeException {
 
@@ -6,4 +6,3 @@ public class TicketNotFoundException extends RuntimeException {
         super("Ticket no encontrado: " + id);
     }
 }
-

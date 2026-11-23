@@ -30,6 +30,10 @@ public class TicketHistorial {
     @JoinColumn(name = "usuario_ejecutor_id", nullable = false)
     private Usuario usuarioEjecutor;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tecnico_asignado_id")
+    private Usuario tecnicoAsignado;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_anterior", length = 20)
     private EstadoTicket estadoAnterior;
@@ -80,6 +84,14 @@ public class TicketHistorial {
         return usuarioEjecutor;
     }
 
+    public Usuario getTecnicoAsignado() {
+        return tecnicoAsignado;
+    }
+
+    public void setTecnicoAsignado(Usuario tecnicoAsignado) {
+        this.tecnicoAsignado = tecnicoAsignado;
+    }
+
     public EstadoTicket getEstadoAnterior() {
         return estadoAnterior;
     }
@@ -94,5 +106,9 @@ public class TicketHistorial {
 
     public LocalDateTime getFechaEvento() {
         return fechaEvento;
+    }
+
+    public void setFechaEvento(LocalDateTime fechaEvento) {
+        this.fechaEvento = fechaEvento;
     }
 }

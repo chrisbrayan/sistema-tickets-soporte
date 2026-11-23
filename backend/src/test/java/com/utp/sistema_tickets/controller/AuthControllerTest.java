@@ -27,14 +27,14 @@ class AuthControllerTest {
                         .contentType("application/json")
                         .content("""
                                 {
-                                  "email": "ana.usuario@example.com",
-                                  "password": "ana1234"
+                                  "email": "usuario@soporte.com",
+                                  "password": "usuario123"
                                 }
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").isString())
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
-                .andExpect(jsonPath("$.subject").value("ana.usuario@example.com"))
+                .andExpect(jsonPath("$.subject").value("usuario@soporte.com"))
                 .andExpect(jsonPath("$.role").value("USUARIO"))
                 .andExpect(jsonPath("$.expiresAt").isString());
     }
@@ -45,7 +45,7 @@ class AuthControllerTest {
                         .contentType("application/json")
                         .content("""
                                 {
-                                  "email": "ana.usuario@example.com",
+                                  "email": "usuario@soporte.com",
                                   "password": "incorrecta"
                                 }
                                 """))
@@ -66,7 +66,7 @@ class AuthControllerTest {
 
     @Test
     void getTicketsConTokenValidoDevuelve200() throws Exception {
-        String token = login("luis.tecnico@example.com", "tecnico1234");
+        String token = login("tecnico@soporte.com", "tecnico123");
 
         mockMvc.perform(get("/api/tickets")
                         .header("Authorization", "Bearer " + token))
@@ -75,7 +75,7 @@ class AuthControllerTest {
 
     @Test
     void rutaProtegidaConRolInsuficienteDevuelve403() throws Exception {
-        String token = login("ana.usuario@example.com", "ana1234");
+        String token = login("usuario@soporte.com", "usuario123");
 
         mockMvc.perform(delete("/api/tickets/999999")
                         .header("Authorization", "Bearer " + token))

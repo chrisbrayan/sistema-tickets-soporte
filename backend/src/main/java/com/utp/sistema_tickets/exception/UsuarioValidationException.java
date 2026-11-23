@@ -1,4 +1,4 @@
-package com.utp.sistematickets.exception;
+package com.utp.sistema_tickets.exception;
 
 public class UsuarioValidationException extends RuntimeException {
 
